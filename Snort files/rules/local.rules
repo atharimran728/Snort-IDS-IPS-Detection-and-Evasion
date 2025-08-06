@@ -1,0 +1,51 @@
+# Port Scans (Stealth & Overt)
+
+# alert tcp any any -> $HOME_NET any (msg:"Possible Stealth Scan (SYN-ACK without SYN)"; flags:SA,12; flow:stateless; sid:1000001; rev:1;)
+
+# alert tcp any any -> $HOME_NET any (msg:"Possible FIN Scan"; flags:FPU,12; flow:stateless; sid:1000002; rev:1;)
+
+# alert tcp any any -> $HOME_NET any (msg:"Possible NULL Scan"; flags:0,12; flow:stateless; sid:1000003; rev:1;)
+
+# alert tcp any any -> $HOME_NET any (msg:"Possible XMAS Scan"; flags:FPU,12; flow:stateless; sid:1000004; rev:1;)
+
+# alert udp $EXTERNAL_NET any -> $HOME_NET any (msg:"Possible UDP Scan"; dsize:0; sid:1000005; rev:1;)
+
+##################################################################################################################
+
+# Nmap OS Fingerprinting
+
+# Alerts on traffic with a TTL between 1 and 60 (likely a Linux/Unix system after 4+ hops)
+# alert ip any any -> $HOME_NET any (msg:"Possible Nmap Scan (Low TTL)"; ttl:1:60; sid:1000008; rev:1;)
+
+##################################################################################################################
+
+# Network Sweeps (Ping Sweeps)
+
+# alert icmp any any -> $HOME_NET any (msg:"Possible Ping Sweep"; itype:8; icode:0; detection_filter:track by_src, count 10, seconds 5; sid:1000007; rev:1;)
+
+
+
+
+# Malware Signatures 
+# alert tcp any any -> $HOME_NET any (msg:"Potential Malware Download (EXE over HTTP)"; content:"malware.exe"; classtype:trojan-activity; flow:established,to_client; file_data; sid:1000009; rev:1;)
+
+# Denial-of-Service (DoS) Attacks (SYN Flood)
+# alert tcp any any -> $HOME_NET any (msg:"Potential SYN Flood Attack"; flags:S,12; flow:stateless; detection_filter:track by_src, count 50, seconds 5; classtype:attempted-dos; sid:1000011; rev:1;)
+
+
+# Specific Protocol Anomalies (Example: FTP Brute Force)
+# alert tcp any any -> $HOME_NET any (msg:"FTP Login Failure Brute Force (Specific)"; content:"503 Use AUTH first."; flow:established,to_client; classtype:attempted-user; detection_filter:track by_src, count 1, seconds 1000; sid:1000013; rev:1;)
+
+
+# Content Matching (Example: Specific keyword in HTTP traffic)
+# alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Keyword 'Confidential' Detected in HTTP Traffic"; content:"Confidential"; nocase; http_uri; sid:1000013; rev:1;)
+
+# alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Keyword 'Confidential' Detected in HTTP File Content"; flow:to_client,established; content:"Confidential"; nocase; http_server_body; classtype:policy-violation; sid:1000013; rev:1;)
+
+
+# Drop SYN-ACK without SYN
+drop tcp any any -> $HOME_NET any (msg:"Blocked Stealth Scan (SYN-ACK without SYN)"; flags:SA,12; flow:stateless; sid:1000001; rev:2;)
+
+# Drop SYN Flood attempts after threshold
+drop tcp any any -> $HOME_NET any (msg:"Blocked SYN Flood Attack"; flags:S,12; flow:stateless; detection_filter:track by_src, count 50, seconds 5; classtype:attempted-dos; sid:1000011; rev:2;)
+
